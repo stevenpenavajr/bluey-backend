@@ -7,16 +7,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
 var app = express();
-
-// var corsOptions = {
-//   origin: '*',
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   preflightContinue: false,
-//   optionsSuccessStatus: 204,
-// };
 
 app.use(cors());
 
@@ -34,29 +26,40 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
+/**
+ * Create checkout session for Bluey products
+ */
 app.post('/create-checkout-session', async (req, res) => {
   const domainURL = process.env.DOMAIN;
 
-  const { quantity } = req.body;
-  // Create new Checkout Session for the order
-  // Other optional params include:
-  // [billing_address_collection] - to display billing address details on the page
-  // [customer] - if you have an existing Stripe Customer ID
-  // [customer_email] - lets you prefill the email input in the Checkout page
-  // For full details see https://stripe.com/docs/api/checkout/sessions/create
+  let { lineItems } = req.body;
+
+  // TODO: add to environment for scaling
+  const dynamicTaxRateList = [
+    'txr_1HWpTwIZSSMTzx9qIkaJE4LF',
+    'txr_1HWuIbIZSSMTzx9qZssUf39R',
+    'txr_1HWuJ7IZSSMTzx9qiwVN6D9B',
+  ];
+
+  const lineItemsForCheckout = lineItems.map((item) => {
+    return {
+      price: item.price,
+      quantity: item.quantity,
+      dynamic_tax_rates: dynamicTaxRateList,
+    };
+  });
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: process.env.PAYMENT_METHODS.split(', '),
     mode: 'payment',
-    line_items: [
-      {
-        price: process.env.PRICE,
-        quantity: quantity,
-        dynamic_tax_rates: ['txr_1HWpTwIZSSMTzx9qIkaJE4LF'],
-      },
-    ],
-    // ?session_id={CHECKOUT_SESSION_ID} means the redirect will have the session ID set as a query param
+    line_items: lineItemsForCheckout,
+    billing_address_collection: 'auto',
+    shipping_address_collection: {
+      allowed_countries: ['US'],
+    },
+
+    // TODO: Fix success and cancel URLs.
     success_url: `${domainURL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${domainURL}/canceled.html`,
   });
