@@ -12,8 +12,12 @@ const https = require('https');
 const fs = require('fs');
 
 const options = {
-  key: fs.readFileSync('api.blueyshop.com.pem'),
-  cert: fs.readFileSync('api.blueyshop.com-cert.pem'),
+  key: fs.readFileSync(
+    '/opt/bitnami/projects/bluey-api/bin/api.blueyshop.com.pem'
+  ),
+  cert: fs.readFileSync(
+    '/opt/bitnami/projects/bluey-api/bin/api.blueyshop.com-cert.pem'
+  ),
 };
 
 /**
