@@ -10,7 +10,14 @@ var indexRouter = require('./routes/index');
 
 var app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  })
+);
 
 require('dotenv').config({ path: './.env' });
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
