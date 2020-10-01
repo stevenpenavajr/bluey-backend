@@ -11,14 +11,8 @@ var http = require('http');
 const https = require('https');
 const fs = require('fs');
 
-const options = {
-  key: fs.readFileSync(
-    '/opt/bitnami/projects/bluey-api/bin/api.blueyshop.com.pem'
-  ),
-  cert: fs.readFileSync(
-    '/opt/bitnami/projects/bluey-api/bin/api.blueyshop.com-cert.pem'
-  ),
-};
+// Set to false for prod
+const localTest = true;
 
 /**
  * Get port from environment and store in Express.
@@ -28,10 +22,26 @@ var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create HTTP or HTTPS server.
+ * TODO: change paths to actual origin .key and .crt
+ * since these will expire (before December)
  */
-
-var server = https.createServer(options, app);
+var server;
+if (localTest) {
+  server = http.createServer(app);
+} else {
+  server = https.createServer(
+    {
+      key: fs.readFileSync(
+        '/opt/bitnami/projects/bluey-api/bin/api.blueyshop.com.pem'
+      ),
+      cert: fs.readFileSync(
+        '/opt/bitnami/projects/bluey-api/bin/api.blueyshop.com-cert.pem'
+      ),
+    },
+    app
+  );
+}
 
 /**
  * Listen on provided port, on all network interfaces.
