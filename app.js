@@ -67,8 +67,10 @@ app.post('/create-checkout-session', async (req, res) => {
     },
 
     // TODO: Fix success and cancel URLs.
-    success_url: `${domainURL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${domainURL}/canceled.html`,
+    success_url: `http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `http://localhost:4200/cancelled?session_id={CHECKOUT_SESSION_ID}`,
+    // success_url: `${domainURL}/success?session_id=${CHECKOUT_SESSION_ID}`,
+    // cancel_url: `${domainURL}/canceled?session_id=${CHECKOUT_SESSION_ID}`,
   });
 
   res.send({
