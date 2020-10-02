@@ -78,6 +78,23 @@ app.post('/create-checkout-session', async (req, res) => {
   });
 });
 
+/**
+ * Get session id
+ */
+app.get('/checkout-session/:sessionId', async (req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.retrieve(
+      req.params.sessionId
+    );
+    res.status(200);
+    res.send(session);
+  } catch (e) {
+    res.status(400).send({
+      message: 'Invalid session id!',
+    });
+  }
+});
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
