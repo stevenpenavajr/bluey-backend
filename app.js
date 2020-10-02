@@ -57,6 +57,15 @@ app.post('/create-checkout-session', async (req, res) => {
     };
   });
 
+  let itemDict = {};
+  lineItemsForCheckout.forEach((item, index) => {
+    itemDict[index] = item.price;
+  });
+
+  const itemParams = (queryString = Object.keys(itemDict)
+    .map((key) => 'itemPurchased' + '=' + itemDict[key])
+    .join('&'));
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: process.env.PAYMENT_METHODS.split(', '),
     mode: 'payment',
@@ -67,7 +76,7 @@ app.post('/create-checkout-session', async (req, res) => {
     },
 
     // TODO: Fix success and cancel URLs.
-    success_url: `http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}&${itemParams}`,
     cancel_url: `http://localhost:4200/cancelled?session_id={CHECKOUT_SESSION_ID}`,
     // success_url: `${domainURL}/success?session_id=${CHECKOUT_SESSION_ID}`,
     // cancel_url: `${domainURL}/canceled?session_id=${CHECKOUT_SESSION_ID}`,
