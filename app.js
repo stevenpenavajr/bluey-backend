@@ -10,6 +10,9 @@ var indexRouter = require('./routes/index');
 
 var app = express();
 
+const STRIPE_SECRET_KEY =
+  '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';
+
 app.use(
   cors({
     origin: '*',
@@ -20,7 +23,7 @@ app.use(
 );
 
 require('dotenv').config({ path: './.env' });
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(STRIPE_SECRET_KEY);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -38,16 +41,11 @@ app.use('/', indexRouter);
  * Create checkout session for Bluey products
  */
 app.post('/create-checkout-session', async (req, res) => {
-  const domainURL = process.env.DOMAIN;
-
   let { lineItems } = req.body;
 
   // TODO: add to environment for scaling
-  const dynamicTaxRateList = [
-    'txr_1HWpTwIZSSMTzx9qIkaJE4LF',
-    'txr_1HWuIbIZSSMTzx9qZssUf39R',
-    'txr_1HWuJ7IZSSMTzx9qiwVN6D9B',
-  ];
+  // TODO: ADD ALL OTHERS!
+  const dynamicTaxRateList = ['txr_1HhnE3IZSSMTzx9qdJe7a46Z'];
 
   const lineItemsForCheckout = lineItems.map((item) => {
     return {
@@ -66,21 +64,29 @@ app.post('/create-checkout-session', async (req, res) => {
     .map((key) => 'itemPurchased' + '=' + itemDict[key])
     .join('&'));
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: process.env.PAYMENT_METHODS.split(', '),
+  let session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
     mode: 'payment',
     line_items: lineItemsForCheckout,
     billing_address_collection: 'auto',
     shipping_address_collection: {
       allowed_countries: ['US'],
     },
+    allow_promotion_codes: true,
 
     // TODO: Fix success and cancel URLs.
-    success_url: `http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}&${itemParams}`,
-    cancel_url: `http://localhost:4200/cancelled?session_id={CHECKOUT_SESSION_ID}`,
-    // success_url: `${domainURL}/success?session_id=${CHECKOUT_SESSION_ID}`,
-    // cancel_url: `${domainURL}/canceled?session_id=${CHECKOUT_SESSION_ID}`,
+    // success_url: `http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}&${itemParams}`,
+    // cancel_url: `http://localhost:4200/cancelled?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `https://blueyshop.com/success?session_id={CHECKOUT_SESSION_ID}&${itemParams}`,
+    cancel_url: `https://blueyshop.com/cancelled?session_id={CHECKOUT_SESSION_ID}`,
+    // success_url: 'test',
+    // cancel_url: 'test',
   });
+
+  // session.success_url = `https://blueyshop.com/success?session_id=${session.id}`;
+  // session.cancel_url = `https://blueyshop.com/canceled?session_id=${session.id}`;
+
+  // pm2 start /opt/bitnami/projects/bluey-api/bin/www
 
   res.send({
     sessionId: session.id,
