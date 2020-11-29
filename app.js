@@ -45,7 +45,59 @@ app.post('/create-checkout-session', async (req, res) => {
 
   // TODO: add to environment for scaling
   // TODO: ADD ALL OTHERS!
-  const dynamicTaxRateList = ['txr_1HhnE3IZSSMTzx9qdJe7a46Z'];
+  const dynamicTaxRateList = [
+    'txr_1HiNcWIZSSMTzx9q8V3hW045',
+    'txr_1HiNcHIZSSMTzx9qP9MbgVeP',
+    'txr_1HiNc9IZSSMTzx9q129uktqM',
+    'txr_1HiNc0IZSSMTzx9qMlkF7P7i',
+    'txr_1HiNbkIZSSMTzx9q03GjJceC',
+    'txr_1HiNbaIZSSMTzx9qSqUKOJKL',
+    'txr_1HiNbRIZSSMTzx9qSMl6U5vD',
+    'txr_1HiNbGIZSSMTzx9qhP3XvZ3J',
+    'txr_1HiNb7IZSSMTzx9qR47QXfRa',
+    'txr_1HiNazIZSSMTzx9qUIS2k1OG',
+    'txr_1HiNamIZSSMTzx9qE1W5navP',
+    'txr_1HiNaeIZSSMTzx9qvvBe2DaG',
+    'txr_1HiNaUIZSSMTzx9q46TUCtY8',
+    'txr_1HiNaLIZSSMTzx9qTL7dg5sB',
+    'txr_1HiNaCIZSSMTzx9qlSqhe3mc',
+    'txr_1HiNa1IZSSMTzx9qgc0GXN6h',
+    'txr_1HiNZuIZSSMTzx9qIXrzU4Dn',
+    'txr_1HiNZlIZSSMTzx9qTEVLOGG0',
+    'txr_1HiNZXIZSSMTzx9qHWWg2H43',
+    'txr_1HiNZPIZSSMTzx9qjnOJpiyd',
+    'txr_1HiNZFIZSSMTzx9qWxfepFCL',
+    'txr_1HiNZ3IZSSMTzx9qwBJFJRuq',
+    'txr_1HiNYvIZSSMTzx9qlFLSCj5F',
+    'txr_1HiNYjIZSSMTzx9qwlPKGTsy',
+    'txr_1HiNYYIZSSMTzx9qexfSTU0x',
+    'txr_1HiNYMIZSSMTzx9qhuvS0R6c',
+    'txr_1HiNYDIZSSMTzx9qHYbKnA73',
+    'txr_1HiNY3IZSSMTzx9q1jTQFbZT',
+    'txr_1HiNXtIZSSMTzx9qJe79HQLq',
+    'txr_1HiNXjIZSSMTzx9qeJMLBGGD',
+    'txr_1HiNVmIZSSMTzx9qq5rqT6Wd',
+    'txr_1HiNVbIZSSMTzx9qsHc0Izjn',
+    'txr_1HiNVOIZSSMTzx9qu0LuzRqX',
+    'txr_1HiNVBIZSSMTzx9qwqv7WgQ9',
+    'txr_1HiNV1IZSSMTzx9qeB5IXwy8',
+    'txr_1HiNUrIZSSMTzx9qofGKaUFP',
+    'txr_1HiNUhIZSSMTzx9qn2TtQi2c',
+    'txr_1HiNUZIZSSMTzx9qh6EQqvqS',
+    'txr_1HiNUQIZSSMTzx9qQhP51Uzc',
+    'txr_1HiNUDIZSSMTzx9q7QIBJcLe',
+    'txr_1HiNU1IZSSMTzx9qhO11kyss',
+    'txr_1HiNTpIZSSMTzx9qfVu5ct7J',
+    'txr_1HiNTcIZSSMTzx9qV2imN89v',
+    'txr_1HiNTTIZSSMTzx9qV0tcfAqJ',
+    'txr_1HiNTJIZSSMTzx9ql2giCHiq',
+    'txr_1HiNT6IZSSMTzx9qTegcBmuB',
+    'txr_1HiNSvIZSSMTzx9qK43KAmsW',
+    'txr_1HiNSiIZSSMTzx9qHCThWo7S',
+    'txr_1HiNSWIZSSMTzx9q7VxLy1hg',
+    'txr_1HiNSDIZSSMTzx9q93wT3F8u',
+    'txr_1HhnE3IZSSMTzx9qdJe7a46Z',
+  ];
 
   const lineItemsForCheckout = lineItems.map((item) => {
     return {
@@ -55,6 +107,17 @@ app.post('/create-checkout-session', async (req, res) => {
     };
   });
 
+  // TODO: check for custom deck order
+  //  - create product with name custom: name
+  //  - create product with descprtion - colors!!
+  // https://stripe.com/docs/billing/prices-guide
+  // use the above for product and price
+
+  // const product = await stripe.products.create({
+  //   name: 'Gold Special',
+  // });
+
+  // TODO: use custom order data here
   let itemDict = {};
   lineItemsForCheckout.forEach((item, index) => {
     itemDict[index] = item.price;
@@ -74,17 +137,10 @@ app.post('/create-checkout-session', async (req, res) => {
     },
     allow_promotion_codes: true,
 
-    // TODO: Fix success and cancel URLs.
-    // success_url: `http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}&${itemParams}`,
-    // cancel_url: `http://localhost:4200/cancelled?session_id={CHECKOUT_SESSION_ID}`,
+    // TODO: ADD VARS TO ENV FILE!!!!!
     success_url: `https://blueyshop.com/success?session_id={CHECKOUT_SESSION_ID}&${itemParams}`,
     cancel_url: `https://blueyshop.com/cancelled?session_id={CHECKOUT_SESSION_ID}`,
-    // success_url: 'test',
-    // cancel_url: 'test',
   });
-
-  // session.success_url = `https://blueyshop.com/success?session_id=${session.id}`;
-  // session.cancel_url = `https://blueyshop.com/canceled?session_id=${session.id}`;
 
   // pm2 start /opt/bitnami/projects/bluey-api/bin/www
 
