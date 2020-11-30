@@ -10,8 +10,13 @@ var indexRouter = require('./routes/index');
 
 var app = express();
 
+// prod
+// const STRIPE_SECRET_KEY =
+//   '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';
+
+// test
 const STRIPE_SECRET_KEY =
-  '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';
+  'sk_test_51HTvjPIZSSMTzx9q2QvrGrfw7QfpsUCULpPqg7muoFAjUdSLZSnAQi35pqis2iUjrElfd23XTmQOPYDz7S0C1Z4800WWwbwPp9';
 
 app.use(
   cors({
@@ -41,10 +46,10 @@ app.use('/', indexRouter);
  * Create checkout session for Bluey products
  */
 app.post('/create-checkout-session', async (req, res) => {
-  let { lineItems } = req.body;
+  // Create array of items in cart
+  let { itemsInCart } = req.body;
 
-  // TODO: add to environment for scaling
-  // TODO: ADD ALL OTHERS!
+  // Build list of dynamic tax rates to use, TODO: move to config
   const dynamicTaxRateList = [
     'txr_1HiNcWIZSSMTzx9q8V3hW045',
     'txr_1HiNcHIZSSMTzx9qP9MbgVeP',
@@ -99,25 +104,44 @@ app.post('/create-checkout-session', async (req, res) => {
     'txr_1HhnE3IZSSMTzx9qdJe7a46Z',
   ];
 
-  const lineItemsForCheckout = lineItems.map((item) => {
-    return {
-      price: item.price,
-      quantity: item.quantity,
-      dynamic_tax_rates: dynamicTaxRateList,
-    };
-  });
+  // Build list of checkout items; use given 'item.price' (stripe id) or create a custom product
+  const lineItemsForCheckout = await Promise.all(
+    itemsInCart.map(async (item) => {
+      // If no stripe id, must be a custom. create it.
+      if (!item.price) {
+        const customDeck = await stripe.products.create({
+          name: item.title,
+          description:
+            'Colors: ' +
+            item.colorsText +
+            ' - Description: ' +
+            item.userDescription,
+          images: ['https://bluey-shop.s3.amazonaws.com/decks/deck-999.jpg'],
+        });
 
-  // TODO: check for custom deck order
-  //  - create product with name custom: name
-  //  - create product with descprtion - colors!!
-  // https://stripe.com/docs/billing/prices-guide
-  // use the above for product and price
+        const customDeckPriceObj = await stripe.prices.create({
+          product: customDeck.id,
+          unit_amount_decimal: 9999,
+          currency: 'usd',
+        });
 
-  // const product = await stripe.products.create({
-  //   name: 'Gold Special',
-  // });
+        return {
+          price: customDeckPriceObj.id,
+          quantity: 1,
+          // dynamic_tax_rates: dynamicTaxRateList
+        };
 
-  // TODO: use custom order data here
+        // If stripe id given, board exists
+      } else {
+        return {
+          price: item.price,
+          quantity: item.quantity,
+          // dynamic_tax_rates: dynamicTaxRateList
+        };
+      }
+    })
+  );
+
   let itemDict = {};
   lineItemsForCheckout.forEach((item, index) => {
     itemDict[index] = item.price;
